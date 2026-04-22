@@ -1,21 +1,21 @@
 # Analizator Danych Pogodowych
 
-Aplikacja webowa do analizy historycznych danych pogodowych dla duńskich miast. Napisana w Pythonie z użyciem Streamlit i Plotly. Dane pobierane są z Open-Meteo API i zapisywane lokalnie w SQLite.
+Aplikacja webowa do analizy historycznych danych pogodowych dla dunskich miast. Napisana w Pythonie z uzyciem Streamlit i Plotly. Dane pobierane sa z Open-Meteo API i zapisywane lokalnie w SQLite.
 
-W repozytorium jest też starsza wersja konsolowa napisana w Javie.
+W repozytorium jest tez starsza wersja konsolowa napisana w Javie.
 
 ---
 
 ## Jak uruchomić
 
-### Python (główna aplikacja)
+### Python (glowna aplikacja)
 
 ```bash
 pip install -r requirements.txt
 streamlit run app.py
 ```
 
-Aplikacja będzie dostępna pod http://localhost:8501
+Aplikacja bedzie dostepna pod http://localhost:8501
 
 ### Docker
 
@@ -34,34 +34,34 @@ java Main
 
 ## Co robi aplikacja
 
-- pobiera historyczne dane pogodowe z Open-Meteo API dla 5 duńskich miast
-- zapisuje pobrane dane w lokalnej bazie SQLite żeby nie pobierać ich za każdym razem
-- filtrowanie po mieście i zakresie dat
-- wykrywanie anomalii pogodowych metodą odchylenia standardowego (2σ)
+- pobiera historyczne dane pogodowe z Open-Meteo API dla 5 dunskich miast
+- zapisuje pobrane dane w lokalnej bazie SQLite zeby nie pobierac ich za kazdym razem
+- filtrowanie po miescie i zakresie dat
+- wykrywanie anomalii pogodowych metoda odchylenia standardowego
 - wyznaczanie trendu liniowego temperatury
-- porównywanie dwóch miast na wykresach
-- statystyki miesięczne
+- porownywanie dwoch miast na wykresach
+- statystyki miesieczne
 - eksport danych do CSV
-- fallback na lokalny plik CSV jeśli API nie działa
+- fallback na lokalny plik CSV jesli API nie dziala
 
 ---
 
-## Struktura plików
+## Struktura plikow
 
-**Python:**
-- `app.py` - główny plik aplikacji, interfejs Streamlit
-- `weather_api.py` - pobieranie danych z Open-Meteo API
-- `data_loader.py` - zarządzanie danymi (baza SQLite, CSV, API)
-- `analyzer.py` - obliczenia statystyk, wykrywanie anomalii, trend
+Python:
+- app.py - glowny plik aplikacji, interfejs Streamlit
+- weather_api.py - pobieranie danych z Open-Meteo API
+- data_loader.py - zarzadzanie danymi (baza SQLite, CSV, API)
+- analyzer.py - obliczenia statystyk, wykrywanie anomalii, trend
 
-**Java:**
-- `Main.java` - punkt wejścia
-- `WeatherRecord.java` - rekord danych pogodowych
-- `WeatherDataLoader.java` - wczytywanie CSV
-- `WeatherFilter.java` - filtrowanie danych
-- `WeatherStatistics.java` - statystyki
-- `WeatherAnalyzer.java` - wykrywanie anomalii
-- `WeatherReport.java` - generowanie raportu
+Java:
+- Main.java - punkt wejscia
+- WeatherRecord.java - rekord danych pogodowych
+- WeatherDataLoader.java - wczytywanie CSV
+- WeatherFilter.java - filtrowanie danych
+- WeatherStatistics.java - statystyki
+- WeatherAnalyzer.java - wykrywanie anomalii
+- WeatherReport.java - generowanie raportu
 
 ---
 
@@ -73,4 +73,4 @@ java Main
 
 ---
 
-*Mateusz Ryngiewicz*
+Mateusz Ryngiewicz

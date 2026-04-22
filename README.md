@@ -4,33 +4,23 @@ Aplikacja webowa do analizy historycznych danych pogodowych dla dunskich miast. 
 
 W repozytorium jest tez starsza wersja konsolowa napisana w Javie.
 
----
+## Jak uruchomic
 
-## Jak uruchomić
+Python (glowna aplikacja):
 
-### Python (glowna aplikacja)
-
-```bash
 pip install -r requirements.txt
 streamlit run app.py
-```
 
 Aplikacja bedzie dostepna pod http://localhost:8501
 
-### Docker
+Docker:
 
-```bash
 docker compose up --build
-```
 
-### Java (wersja konsolowa)
+Java (wersja konsolowa):
 
-```bash
 javac *.java
 java Main
-```
-
----
 
 ## Co robi aplikacja
 
@@ -43,8 +33,6 @@ java Main
 - statystyki miesieczne
 - eksport danych do CSV
 - fallback na lokalny plik CSV jesli API nie dziala
-
----
 
 ## Struktura plikow
 
@@ -63,14 +51,8 @@ Java:
 - WeatherAnalyzer.java - wykrywanie anomalii
 - WeatherReport.java - generowanie raportu
 
----
-
 ## Technologie
 
-- Python, Streamlit, Plotly, Pandas, NumPy, SQLite
-- Java (wersja konsolowa)
-- Docker
-
----
+Python, Streamlit, Plotly, Pandas, NumPy, SQLite, Java, Docker
 
 Mateusz Ryngiewicz

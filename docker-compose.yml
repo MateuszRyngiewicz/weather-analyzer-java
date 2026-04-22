@@ -1,0 +1,13 @@
+version: "3.8"
+
+services:
+  weather-app:
+    build: .
+    container_name: analizator-pogody
+    ports:
+      - "8501:8501"
+    volumes:
+      # zachowuje baze SQLite miedzy restartami
+      - ./weather_history.db:/app/weather_history.db
+      - ./weather_data.csv:/app/weather_data.csv
+    restart: unless-stopped

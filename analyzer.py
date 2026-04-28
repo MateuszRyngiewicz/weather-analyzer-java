@@ -1,39 +1,52 @@
 import numpy as np
 import pandas as pd
+from functools import reduce
 
 
 def compute_statistics(df):
     if df.empty:
         return {}
 
-    avg_temp = round(df["temperature"].mean(), 2)
-    total_precipitation = round(df["precipitation"].sum(), 2)
-    avg_precipitation = round(df["precipitation"].mean(), 2)
-    rainy_days = int((df["precipitation"] > 0).sum())
+    records = df.to_dict("records")
+
+    # map - wyciagamy same temperatury z listy rekordow
+    temperatures = list(map(lambda r: r["temperature"], records))
+    precipitations = list(map(lambda r: r["precipitation"], records))
+    wind_speeds = list(map(lambda r: r["windSpeed"], records))
+
+    # filter - tylko dni z opadami
+    rainy = list(filter(lambda r: r["precipitation"] > 0, records))
+
+    # reduce - suma opadow
+    total_precipitation = reduce(lambda acc, r: acc + r["precipitation"], records, 0)
+
+    avg_temp = round(sum(temperatures) / len(temperatures), 2)
+    avg_precipitation = round(total_precipitation / len(records), 2)
+    avg_windspeed = round(sum(wind_speeds) / len(wind_speeds), 2)
+    max_windspeed = round(max(wind_speeds), 2)
 
     if "temperature_max" in df.columns:
-        max_temp = round(df["temperature_max"].max(), 2)
+        temps_max = list(map(lambda r: r["temperature_max"], records))
+        max_temp = round(max(temps_max), 2)
     else:
-        max_temp = round(df["temperature"].max(), 2)
+        max_temp = round(max(temperatures), 2)
 
     if "temperature_min" in df.columns:
-        min_temp = round(df["temperature_min"].min(), 2)
+        temps_min = list(map(lambda r: r["temperature_min"], records))
+        min_temp = round(min(temps_min), 2)
     else:
-        min_temp = round(df["temperature"].min(), 2)
-
-    max_windspeed = round(df["windSpeed"].max(), 2)
-    avg_windspeed = round(df["windSpeed"].mean(), 2)
+        min_temp = round(min(temperatures), 2)
 
     stats = {
         "avg_temp": avg_temp,
         "max_temp": max_temp,
         "min_temp": min_temp,
-        "total_precipitation": total_precipitation,
+        "total_precipitation": round(total_precipitation, 2),
         "avg_precipitation": avg_precipitation,
         "max_windspeed": max_windspeed,
         "avg_windspeed": avg_windspeed,
-        "rainy_days": rainy_days,
-        "record_count": len(df),
+        "rainy_days": len(rainy),
+        "record_count": len(records),
     }
 
     return stats
@@ -45,17 +58,13 @@ def detect_anomalies(df, temp_high=None, temp_low=None, wind_thresh=None, rain_t
 
     result = df.copy()
 
-    # liczymy srednia i odchylenie standardowe dla kazdego parametru
     avg_temp = result["temperature"].mean()
     std_temp = result["temperature"].std()
-
     avg_wind = result["windSpeed"].mean()
     std_wind = result["windSpeed"].std()
-
     avg_rain = result["precipitation"].mean()
     std_rain = result["precipitation"].std()
 
-    # jesli uzytkownik nie podal progow to liczymy automatycznie
     if temp_high is None:
         temp_high = avg_temp + 2 * std_temp
     if temp_low is None:
@@ -65,10 +74,16 @@ def detect_anomalies(df, temp_high=None, temp_low=None, wind_thresh=None, rain_t
     if rain_thresh is None:
         rain_thresh = avg_rain + 2 * std_rain
 
-    result["anomaly_high_temp"] = result["temperature"] > temp_high
-    result["anomaly_low_temp"] = result["temperature"] < temp_low
-    result["anomaly_wind"] = result["windSpeed"] > wind_thresh
-    result["anomaly_rain"] = result["precipitation"] > rain_thresh
+    # lambda do sprawdzania czy wartosc przekracza prog
+    is_high_temp = lambda t: t > temp_high
+    is_low_temp = lambda t: t < temp_low
+    is_strong_wind = lambda w: w > wind_thresh
+    is_heavy_rain = lambda r: r > rain_thresh
+
+    result["anomaly_high_temp"] = result["temperature"].map(is_high_temp)
+    result["anomaly_low_temp"] = result["temperature"].map(is_low_temp)
+    result["anomaly_wind"] = result["windSpeed"].map(is_strong_wind)
+    result["anomaly_rain"] = result["precipitation"].map(is_heavy_rain)
 
     result["is_anomaly"] = (
         result["anomaly_high_temp"] |
@@ -87,24 +102,25 @@ def compute_monthly_stats(df):
     result = df.copy()
     result["month"] = result["date"].dt.to_period("M")
 
-    rows = []
-    for month, group in result.groupby("month"):
-        avg_temp = round(group["temperature"].mean(), 2)
-        max_temp = round(group["temperature"].max(), 2)
-        min_temp = round(group["temperature"].min(), 2)
-        total_rain = round(group["precipitation"].sum(), 2)
-        avg_wind = round(group["windSpeed"].mean(), 2)
-        rainy_days = int((group["precipitation"] > 0).sum())
+    def stats_for_group(group):
+        records = group.to_dict("records")
+        temps = list(map(lambda r: r["temperature"], records))
+        rains = list(map(lambda r: r["precipitation"], records))
+        winds = list(map(lambda r: r["windSpeed"], records))
+        rainy = list(filter(lambda r: r["precipitation"] > 0, records))
+        total_rain = reduce(lambda acc, r: acc + r["precipitation"], records, 0)
 
-        rows.append({
-            "month": str(month),
-            "avg_temp": avg_temp,
-            "max_temp": max_temp,
-            "min_temp": min_temp,
-            "total_rain": total_rain,
-            "avg_wind": avg_wind,
-            "rainy_days": rainy_days,
-        })
+        return {
+            "avg_temp": round(sum(temps) / len(temps), 2),
+            "max_temp": round(max(temps), 2),
+            "min_temp": round(min(temps), 2),
+            "total_rain": round(total_rain, 2),
+            "avg_wind": round(sum(winds) / len(winds), 2),
+            "rainy_days": len(rainy),
+        }
+
+    rows = [{"month": str(month), **stats_for_group(group)}
+            for month, group in result.groupby("month")]
 
     return pd.DataFrame(rows)
 
@@ -116,7 +132,6 @@ def compute_trend(df, column="temperature"):
     x = np.arange(len(df))
     y = df[column].values
 
-    # regresja liniowa - zwraca wspolczynniki wielomianu stopnia 1
     coeffs = np.polyfit(x, y, 1)
     slope = coeffs[0]
     trend_line = np.polyval(coeffs, x)
